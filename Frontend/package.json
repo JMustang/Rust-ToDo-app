@@ -1,0 +1,10 @@
+{
+    "nome": "Junior",
+    "type": "module",
+    "version": "0.0.1",
+    "description": "TodoMVC frontend",
+    "dependencies": {},
+    "devDependencies": {},
+    "author": "Junior Carvalho",
+    "license": "MIT"
+}
