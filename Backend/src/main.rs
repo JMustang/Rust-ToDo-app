@@ -1,4 +1,4 @@
-#![allow(unused)]
+#![allow(unused)] // silence unused warnings while exploring (to comment out)
 
 mod model;
 mod security;
