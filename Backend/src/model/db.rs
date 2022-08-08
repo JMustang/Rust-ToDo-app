@@ -36,7 +36,9 @@ pub async fn init_db() -> Result<Db, sqlx::Error> {
     // execute each file
     for path in paths {
         if let Some(path) = path.to_str() {
-            // only .sql and not the recreate
+            /*
+            only .sql and not the recreate
+            */
             if path.ends_with(".sql") && path != SQL_RECREATE {
                 pexec(&app_db, &path).await?;
             }
