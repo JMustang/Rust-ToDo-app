@@ -1,7 +1,7 @@
 use sqlb::HasFields;
 
 use super::db::Db;
-use crate::model;
+use crate::{model, security::UserCtx};
 
 // region: Todo Types
 #[derive(sqlx::FromRow, Debug, Clone)]
@@ -33,7 +33,7 @@ sqlb::bindable!(TodoStatus);
 pub struct TodoMac;
 
 impl TodoMac {
-    pub async fn create(db: &Db, data: TodoPatch) -> Result<Todo, model::Error> {
+    pub async fn create(db: &Db, utx: &UserCtx, data: TodoPatch) -> Result<Todo, model::Error> {
         let mut fields = data.fields();
         fields.push(("cid", 123).into());
 
@@ -47,7 +47,7 @@ impl TodoMac {
         Ok(todo)
     }
 
-    pub async fn list(db: &Db) -> Result<Vec<Todo>, model::Error> {
+    pub async fn list(db: &Db, _utx: &UserCtx) -> Result<Vec<Todo>, model::Error> {
         let sb = sqlb::select()
             .table("todo")
             .columns(&["id", "cid", "title", "status"])
