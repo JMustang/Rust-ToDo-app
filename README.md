@@ -1,3 +1,6 @@
+[![LOGO](rust-logo.png)](https://www.rust-lang.org)
+
+
 ## Banco de Dados
 
 ```sh
@@ -23,3 +26,8 @@ cargo watch -q -c -w src/ -x 'test model_db_ -- --test-threads=1 --nocapture'
 2. Confiável: Tokio aproveita a propriedade, o sistema de tipos e o modelo de simultaneidade do Rust para reduzir bugs e garantir a segurança do thread.
 
 3. Escalável: Tokio tem uma pegada mínima e lida com contrapressão e cancelamento naturalmente.
+
+
+## futures-rs
+
+- futures-rs é uma biblioteca que fornece as bases para programação assíncrona em Rust. Ele inclui definições de características-chave como Stream, bem como utilitários como join!, select! e vários métodos combinadores de futuros que permitem um fluxo de controle assíncrono expressivo.
