@@ -82,3 +82,18 @@ async fn main() {
         .await;
 }
 ```
+
+
+## slqx
+
+- SQLx é uma crate Rust† SQL assíncrona e pura com consultas verificadas em tempo de compilação sem um DSL.
+
+1. Verdadeiramente Assíncrono. Construído desde o início usando async/await para máxima simultaneidade.
+
+2. Consultas verificadas em tempo de compilação (se desejar). Veja SQLx não é um ORM.
+
+3. Banco de dados agnóstico. Suporte para PostgreSQL, MySQL, SQLite e MSSQL.
+
+4. Rust Pura. Os drivers Postgres e MySQL/MariaDB são escritos em puro Rust usando zero código inseguro††.
+
+5. Tempo de execução agnóstico. Funciona em diferentes tempos de execução (async-std / tokio / actix) e backends TLS (native-tls, rustls).
