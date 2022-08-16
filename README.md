@@ -97,3 +97,73 @@ async fn main() {
 4. Rust Pura. Os drivers Postgres e MySQL/MariaDB são escritos em puro Rust usando zero código inseguro††.
 
 5. Tempo de execução agnóstico. Funciona em diferentes tempos de execução (async-std / tokio / actix) e backends TLS (native-tls, rustls).
+
+
+## slqb
+
+IMPORTANTE - As versões 0.0.x serão experimentais e provavelmente quebrarão as APIs em cada versão.
+
+sqlb é (será) um SQLBuilder simples e expressivo para Rust.
+
+Simples - Focado em fornecer um esquema expressivo, combinável e razoavelmente tipado para construir e executar (via sqlx por enquanto) instruções SQL parametrizadas. O objetivo NÃO é abstrair o SQL, mas torná-lo expressivo e combinável usando construções programáticas do Rust.
+NÃO é um executor/driver de banco de dados (Estará usando SQLX como executor de sql)
+NÃO é um ORM, embora eventualmente se possa construir um ORM em cima dele.
+Expressivo - De entrada e saída de dados digitados arbitrários (lista de nomes/valores) a regras de estrutura e mapeamento.
+Focado
+sqlx - O primeiro "executor de banco de dados" fornecido será sqlx.
+PostgreSQL - O primeiro suporte de banco de dados será o Postgres (via sqlx). Dependendo do interesse e das solicitações pull, outro suporte de banco de dados pode ser adicionado.
+Declaração preparada SOMENTE!
+NOTA: Os SQL Builders normalmente não são usados ​​diretamente pela lógica de negócios do aplicativo, mas sim para serem encapsulados em alguma camada de acesso a dados do aplicativo (por exemplo, DAOs ou MACs - Model Access Controller -). Na verdade, mesmo ao usar ORMs, geralmente é um bom design de código envolver esses acessos por meio de algumas camadas de acesso a dados.
+
+Metas para as primeiras versões 0.1.x:
+
+sqlx - Provavelmente será centralizado em SQLX.
+PostgreSQL - Provavelmente suportará apenas SQLX. Contribuições para outro banco de dados (via sqlx) são bem-vindas
+Macros - para manter a coisa DRY (mas são opcionais, todas podem ser implementadas através de objetos trait)
+Exemplo de API inicial (apenas conceitual por enquanto)
+
+
+```rs
+#[derive(sqlx::FromRow)] // Optional: to be able to use the sqlx_exec::fetch_as...
+pub struct Todo {
+    pub id: i64,
+    pub title: String,
+}
+
+#[derive(sqlb::Fields)] // implements sqlb::HasFields for dynamic binding
+pub struct TodoPatch {
+    pub title: Option<String>,
+}
+
+let patch_data = TodoPatch {
+	title: Some("Hello Title".to_string())
+};
+
+// INSERT - Insert a new Todo from a Partial todo
+let sb = sqlb::insert().table("todo").data(patch_data.fields());
+let sb = sb.returning(&["id", "title"]);
+let (_id, title) = sb.fetch_one::<(i64, String), _>(&db_pool).await?;
+
+// SELECT - Get all todos
+let sb = sqlb::select().table("todo").columns(&["id", "title"]).order_by("!id");
+let todos: Vec<Todo> = sb.fetch_as_all(&db_pool).await?;
+assert_eq!(1, todos.len());
+ ```
+
+## Para sqlb Dev
+
+- Iniciar um PostgreSQL
+
+```rs
+# In terminal 1 - start postges
+docker run --rm --name pg -p 5432:5432  -e POSTGRES_PASSWORD=welcome  postgres:14
+
+# In terminal 2 - (optional) launch psql on the Postgres instance above
+docker exec -it -u postgres pg psql
+
+# In terminal 3 - MUST run with `--test-threads=1` to avoid database access conflicts
+cargo test -- --test-threads=1
+
+# or watch a particular test target
+cargo watch -q -c -x 'test --test test_sb_insert -- --test-threads=1'
+```
