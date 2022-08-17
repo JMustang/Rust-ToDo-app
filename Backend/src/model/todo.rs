@@ -63,6 +63,23 @@ impl TodoMac {
         Ok(todo)
     }
 
+    pub async fn update(
+        db: &Db,
+        utx: &UserCtx,
+        id: i64,
+        data: TodoPatch,
+    ) -> Result<Todo, model::Error> {
+        let sb = sqlb::update()
+            .table(Self::TABLE)
+            .data(data.fields())
+            .and_where_eq("id", id)
+            .returning(Self::COLUMNS);
+
+        let todo = sb.fetch_one(db).await?;
+
+        Ok(todo)
+    }
+
     pub async fn list(db: &Db, _utx: &UserCtx) -> Result<Vec<Todo>, model::Error> {
         let sb = sqlb::select()
             .table(Self::TABLE)
