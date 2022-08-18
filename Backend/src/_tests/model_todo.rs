@@ -1,18 +1,16 @@
+use super::{Todo, TodoMac};
+use crate::model;
 use crate::model::db::init_db;
 use crate::model::todo::{TodoPatch, TodoStatus};
 use crate::security::utx_from_token;
 
-use super::{Todo, TodoMac};
-
 #[tokio::test]
-
 async fn model_todo_create() -> Result<(), Box<dyn std::error::Error>> {
     // -- FIXTURE
     let db = init_db().await?;
     let utx = utx_from_token("123").await?;
     let data_fx = TodoPatch {
         title: Some("test - model_todo_create 1".to_string()),
-
         ..Default::default()
     };
 
@@ -28,7 +26,7 @@ async fn model_todo_create() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tokio::test]
-async fn model_todo_get() -> Result<(), Box<dyn std::error::Error>> {
+async fn model_todo_get_ok() -> Result<(), Box<dyn std::error::Error>> {
     // -- FIXTURE
     let db = init_db().await?;
     let utx = utx_from_token("123").await?;
@@ -40,6 +38,28 @@ async fn model_todo_get() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(100, todo.id);
     assert_eq!("todo 100", todo.title);
     assert_eq!(TodoStatus::Close, todo.status);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn model_todo_get_wong_id() -> Result<(), Box<dyn std::error::Error>> {
+    // -- FIXTURE
+    let db = init_db().await?;
+    let utx = utx_from_token("123").await?;
+
+    // -- ACTION
+    let result = TodoMac::get(&db, &utx, 999).await;
+
+    // -- CHECK
+    match result {
+        Ok(_) => assert!(false, "Should not succeed"),
+        Err(model::Error::EntityNotFound(typ, id)) => {
+            assert_eq!("todo", typ);
+            assert_eq!(999.to_string(), id);
+        }
+        other_error => assert!(false, "Wrong Error {:?} ", other_error),
+    }
 
     Ok(())
 }
@@ -58,6 +78,7 @@ async fn model_todo_update_ok() -> Result<(), Box<dyn std::error::Error>> {
         title: Some("test - model_todo_update_ok 2".to_string()),
         ..Default::default()
     };
+
     // -- ACTION
     let todo_updated = TodoMac::update(&db, &utx, todo_fx.id, update_data_fx.clone()).await?;
 
@@ -70,6 +91,7 @@ async fn model_todo_update_ok() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[tokio::test]
 async fn model_todo_list() -> Result<(), Box<dyn std::error::Error>> {
     // -- FIXTURE
     let db = init_db().await?;
@@ -88,6 +110,26 @@ async fn model_todo_list() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(100, todos[1].id);
     assert_eq!(123, todos[1].cid);
     assert_eq!("todo 100", todos[1].title);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn model_todo_delete_simple() -> Result<(), Box<dyn std::error::Error>> {
+    // -- FIXTURE
+    let db = init_db().await?;
+    let utx = utx_from_token("123").await?;
+
+    // -- ACTION
+    let todo = TodoMac::delete(&db, &utx, 100).await?;
+
+    // -- CHECK - deleted item
+    assert_eq!(100, todo.id);
+    assert_eq!("todo 100", todo.title);
+
+    // -- CHECK - list
+    let todos: Vec<Todo> = sqlb::select().table("todo").fetch_all(&db).await?;
+    assert_eq!(1, todos.len());
 
     Ok(())
 }
